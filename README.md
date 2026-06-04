@@ -10,6 +10,9 @@ experiments.
 - `comma_core/cache.py`: disk caches for NLI and similarity calls.
 - `comma_core/evaluator.py`: Exp1/Exp2/Exp3 evaluation loop.
 - `comma_core/outputs.py`: JSON/CSV output writing and comparison tables.
+- `comma_core/prompting.py`: prompt templates, DeepSeek wrapper, and output parser.
+- `prompts/reasoning_chain.md`: human-readable prompt template.
+- `scripts/generate_data.py`: XML-to-CSV and neutral-pair data generation.
 - `run_experiments.py`: thin command-line entry point.
 
 ## Main Entry Point
@@ -63,4 +66,39 @@ To run a subset of Experiment 3 steps:
 
 ```powershell
 python run_experiments.py --experiments exp3 --exp3-steps 2 3 4 5
+```
+
+## Prompt Generation
+
+The prompt template used for implicit-premise generation is documented in
+`prompts/reasoning_chain.md` and implemented in `comma_core.prompting`.
+
+```python
+from comma_core.prompting import build_reasoning_chain_prompt, parse_chain_output
+
+prompt = build_reasoning_chain_prompt(
+    premise="...",
+    claim="...",
+    num_statements="six",
+    topic="...",
+    label="entailment",
+)
+```
+
+API keys are not stored in the repository. The optional DeepSeek helper reads
+`DEEPSEEK_API_KEY` from the environment.
+
+## Data Generation
+
+The checked-in CSV files are already enough to run the experiments. To rebuild
+the ArgGraph-derived CSV from XML files:
+
+```powershell
+python scripts/generate_data.py arggraph --input corpus --output combined_arggraph_dataset.csv
+```
+
+To regenerate neutral pairs with the NLI model:
+
+```powershell
+python scripts/generate_data.py neutral --input combined_arggraph_dataset.csv --output neu2.csv
 ```
