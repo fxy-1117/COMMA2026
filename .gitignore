@@ -1,13 +1,11 @@
 __pycache__/
 *.pyc
 
-.repro_cache/
-reproduction_outputs/
+.experiment_cache/
+experiment_outputs/
 
 *.log
 notebook_direct_*.json
 notebook_direct_*.csv
-reproduction_*.json
-reproduction_*.csv
-paper_reproduction_*.json
-paper_reproduction_*.csv
+experiment_*.json
+experiment_*.csv

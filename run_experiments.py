@@ -1,4 +1,4 @@
-"""Reproduce the paper figures from the original Method.ipynb runtime.
+"""Run the COMMA experiments from the original Method.ipynb runtime.
 
 The notebook contains several fragile behaviours that affect the reported
 numbers. This script preserves those behaviours intentionally:
@@ -7,9 +7,9 @@ numbers. This script preserves those behaviours intentionally:
 * LOGIC is keyed by premise + claim, as in the notebook;
 * the notebook's original pysat_formula implementation is used.
 
-The script adds only operational conveniences: local/offline model loading,
+The script adds operational conveniences: local/offline model loading,
 disk caches for NLI/similarity calls, optional logic-cache preloading, JSON/CSV
-outputs, and automatic comparison to the paper values.
+outputs, and automatic comparison to the reported values.
 """
 
 from __future__ import annotations
@@ -29,8 +29,8 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 ROOT = Path(__file__).resolve().parent
 NOTEBOOK = ROOT / "Method.ipynb"
-DEFAULT_CACHE_DIR = ROOT / ".repro_cache"
-DEFAULT_OUTPUT_DIR = ROOT / "reproduction_outputs"
+DEFAULT_CACHE_DIR = ROOT / ".experiment_cache"
+DEFAULT_OUTPUT_DIR = ROOT / "experiment_outputs"
 
 LABELS = ["con", "ent", "neu"]
 TAU_M_VALUES = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8]
@@ -103,7 +103,7 @@ def stable_key(parts: Iterable[Any]) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-def set_reproducibility(seed: int) -> None:
+def set_seed(seed: int) -> None:
     os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
     os.environ["PYTHONHASHSEED"] = str(seed)
     random.seed(seed)
@@ -187,7 +187,7 @@ def load_method_runtime() -> Dict[str, Any]:
     patch_torch_hub()
 
     notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8", errors="ignore"))
-    ns: Dict[str, Any] = {"__name__": "__paper_reproduction__"}
+    ns: Dict[str, Any] = {"__name__": "__comma_experiments__"}
     for index in range(0, 17):
         exec_notebook_cell(ns, notebook, index)
     return ns
@@ -518,7 +518,7 @@ def write_table(path: Path, rows: List[Dict[str, Any]]) -> None:
 
 def write_outputs(output_dir: Path, results: List[Dict[str, Any]], source_by_experiment: Dict[str, str]) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / "paper_reproduction_results.json").write_text(
+    (output_dir / "experiment_results.json").write_text(
         json.dumps(results, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
@@ -526,8 +526,8 @@ def write_outputs(output_dir: Path, results: List[Dict[str, Any]], source_by_exp
         result_to_summary_row(result, source_by_experiment[result["experiment"]])
         for result in results
     ]
-    write_table(output_dir / "paper_reproduction_summary.csv", summary)
-    write_table(output_dir / "paper_reproduction_comparison.csv", comparison_rows(results))
+    write_table(output_dir / "experiment_summary.csv", summary)
+    write_table(output_dir / "experiment_comparison.csv", comparison_rows(results))
 
 
 def run() -> None:
@@ -554,7 +554,7 @@ def run() -> None:
     )
     args = parser.parse_args()
 
-    set_reproducibility(args.seed)
+    set_seed(args.seed)
     print("loading Method.ipynb runtime")
     sys.stdout.flush()
     ns = load_method_runtime()
@@ -567,7 +567,7 @@ def run() -> None:
     }
     settings = settings_for(args.experiments, exp3_steps=args.exp3_steps)
     results: List[Dict[str, Any]] = []
-    detail_path = args.output_dir / "paper_reproduction_detail.log"
+    detail_path = args.output_dir / "experiment_detail.log"
     detail_path.parent.mkdir(parents=True, exist_ok=True)
 
     with detail_path.open("w", encoding="utf-8") as detail:

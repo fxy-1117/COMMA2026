@@ -1,28 +1,28 @@
-# COMMA Reproduction
+# COMMA Experiments
 
-This repository contains the data and notebook code used to reproduce the
-reported COMMA experiments.
+This repository contains the data, notebooks, and a cleaned Python runner for
+the COMMA experiments.
 
 ## Main Entry Point
 
-Use `reproduce_paper.py` to reproduce the paper figures from the original
+Use `run_experiments.py` to run the experiment pipeline from the original
 `Method.ipynb` runtime. Run it from the repository root with the same Python
 environment used by the notebook:
 
 ```powershell
 $env:PYTHONHASHSEED='1129'
 $env:CUBLAS_WORKSPACE_CONFIG=':4096:8'
-python reproduce_paper.py
+python run_experiments.py
 ```
 
 The script writes:
 
-- `reproduction_outputs/paper_reproduction_results.json`
-- `reproduction_outputs/paper_reproduction_summary.csv`
-- `reproduction_outputs/paper_reproduction_comparison.csv`
-- `reproduction_outputs/paper_reproduction_detail.log`
+- `experiment_outputs/experiment_results.json`
+- `experiment_outputs/experiment_summary.csv`
+- `experiment_outputs/experiment_comparison.csv`
+- `experiment_outputs/experiment_detail.log`
 
-## Reproduction Details
+## Notebook Details
 
 The script intentionally preserves the notebook behaviours that affect the
 reported numbers:
@@ -35,17 +35,17 @@ reported numbers:
 - each class is scanned until up to 140 successful evaluated examples are
   appended.
 
-Disk caches are stored under `.repro_cache/` for AMR logic, NLI predictions,
+Disk caches are stored under `.experiment_cache/` for AMR logic, NLI predictions,
 and sentence-similarity scores. These files are ignored by Git.
 
-To rerun only the Experiment 3 step analysis:
+To run only the Experiment 3 step analysis:
 
 ```powershell
-python reproduce_paper.py --experiments exp3
+python run_experiments.py --experiments exp3
 ```
 
 To run a subset of Experiment 3 steps:
 
 ```powershell
-python reproduce_paper.py --experiments exp3 --exp3-steps 2 3 4 5
+python run_experiments.py --experiments exp3 --exp3-steps 2 3 4 5
 ```
