@@ -1,0 +1,66 @@
+"""Reported experiment settings and reference values."""
+
+LABELS = ["con", "ent", "neu"]
+TAU_M_VALUES = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8]
+TAU_C_VALUES = [80, 90, 100]
+EXP3_STEPS = [0, 1, 2, 3, 4, 5]
+
+EXPECTED_ACCURACY = {
+    ("exp1", 0.50, 80, None): 0.410072,
+    ("exp1", 0.50, 90, None): 0.390476,
+    ("exp1", 0.50, 100, None): 0.373810,
+    ("exp1", 0.55, 80, None): 0.426190,
+    ("exp1", 0.55, 90, None): 0.411905,
+    ("exp1", 0.55, 100, None): 0.390476,
+    ("exp1", 0.60, 80, None): 0.421429,
+    ("exp1", 0.60, 90, None): 0.416667,
+    ("exp1", 0.60, 100, None): 0.409524,
+    ("exp1", 0.65, 80, None): 0.371429,
+    ("exp1", 0.65, 90, None): 0.366667,
+    ("exp1", 0.65, 100, None): 0.361905,
+    ("exp1", 0.70, 80, None): 0.378571,
+    ("exp1", 0.70, 90, None): 0.376190,
+    ("exp1", 0.70, 100, None): 0.352381,
+    ("exp1", 0.75, 80, None): 0.354762,
+    ("exp1", 0.75, 90, None): 0.352381,
+    ("exp1", 0.75, 100, None): 0.338095,
+    ("exp1", 0.80, 80, None): 0.347619,
+    ("exp1", 0.80, 90, None): 0.342857,
+    ("exp1", 0.80, 100, None): 0.340476,
+    ("exp2", 0.50, 80, None): 0.433333,
+    ("exp2", 0.50, 90, None): 0.433333,
+    ("exp2", 0.50, 100, None): 0.400000,
+    ("exp2", 0.55, 80, None): 0.464286,
+    ("exp2", 0.55, 90, None): 0.461905,
+    ("exp2", 0.55, 100, None): 0.430952,
+    ("exp2", 0.60, 80, None): 0.507143,
+    ("exp2", 0.60, 90, None): 0.511905,
+    ("exp2", 0.60, 100, None): 0.485714,
+    ("exp2", 0.65, 80, None): 0.476190,
+    ("exp2", 0.65, 90, None): 0.480952,
+    ("exp2", 0.65, 100, None): 0.450000,
+    ("exp2", 0.70, 80, None): 0.438095,
+    ("exp2", 0.70, 90, None): 0.433333,
+    ("exp2", 0.70, 100, None): 0.388095,
+    ("exp2", 0.75, 80, None): 0.402381,
+    ("exp2", 0.75, 90, None): 0.397619,
+    ("exp2", 0.75, 100, None): 0.364286,
+    ("exp2", 0.80, 80, None): 0.373810,
+    ("exp2", 0.80, 90, None): 0.366667,
+    ("exp2", 0.80, 100, None): 0.354762,
+    ("exp3", 0.60, 80, 0): 0.426,
+    ("exp3", 0.60, 80, 1): 0.507,
+    ("exp3", 0.60, 80, 2): 0.531,
+    ("exp3", 0.60, 80, 3): 0.540,
+    ("exp3", 0.60, 80, 4): 0.555,
+    ("exp3", 0.60, 80, 5): 0.552,
+}
+
+EXPECTED_EXP3_METRICS = {
+    0: {"con": {"precision": 0.49, "recall": 0.31}, "ent": {"precision": 0.44, "recall": 0.34}, "neu": {"precision": 0.39, "recall": 0.63}},
+    1: {"con": {"precision": 0.56, "recall": 0.49}, "ent": {"precision": 0.47, "recall": 0.40}, "neu": {"precision": 0.49, "recall": 0.63}},
+    2: {"con": {"precision": 0.57, "recall": 0.54}, "ent": {"precision": 0.47, "recall": 0.43}, "neu": {"precision": 0.55, "recall": 0.63}},
+    3: {"con": {"precision": 0.53, "recall": 0.52}, "ent": {"precision": 0.49, "recall": 0.47}, "neu": {"precision": 0.60, "recall": 0.63}},
+    4: {"con": {"precision": 0.51, "recall": 0.53}, "ent": {"precision": 0.50, "recall": 0.51}, "neu": {"precision": 0.66, "recall": 0.63}},
+    5: {"con": {"precision": 0.52, "recall": 0.52}, "ent": {"precision": 0.51, "recall": 0.51}, "neu": {"precision": 0.63, "recall": 0.63}},
+}

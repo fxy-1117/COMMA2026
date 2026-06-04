@@ -1,13 +1,22 @@
-# COMMA Experiments
+﻿# COMMA Experiments
 
-This repository contains the data, notebooks, and a cleaned Python runner for
-the COMMA experiments.
+This repository contains the data and cleaned Python code for the COMMA
+experiments.
+
+## Code Layout
+
+- `comma_core/method.py`: core logic from the original experiment code.
+- `comma_core/data.py`: data construction matching the original experiment.
+- `comma_core/cache.py`: disk caches for NLI and similarity calls.
+- `comma_core/evaluator.py`: Exp1/Exp2/Exp3 evaluation loop.
+- `comma_core/outputs.py`: JSON/CSV output writing and comparison tables.
+- `run_experiments.py`: thin command-line entry point.
 
 ## Main Entry Point
 
-Use `run_experiments.py` to run the experiment pipeline from the original
-`Method.ipynb` runtime. Run it from the repository root with the same Python
-environment used by the notebook:
+Use `run_experiments.py` to run the cleaned experiment pipeline. Run it from
+the repository root with the same Python environment used for the original
+experiments:
 
 ```powershell
 $env:PYTHONHASHSEED='1129'
@@ -17,20 +26,26 @@ python run_experiments.py
 
 The script writes:
 
-- `experiment_outputs/experiment_results.json`
-- `experiment_outputs/experiment_summary.csv`
-- `experiment_outputs/experiment_comparison.csv`
-- `experiment_outputs/experiment_detail.log`
+- `experiment_outputs/<run_id>/experiment_results.json`
+- `experiment_outputs/<run_id>/experiment_summary.csv`
+- `experiment_outputs/<run_id>/experiment_comparison.csv`
+- `experiment_outputs/<run_id>/experiment_detail.log`
 
-## Notebook Details
+By default `<run_id>` is a timestamp. You can set it explicitly:
 
-The script intentionally preserves the notebook behaviours that affect the
+```powershell
+python run_experiments.py --run-id full_run_1129
+```
+
+## Experiment Details
+
+The script intentionally preserves the original behaviours that affect the
 reported numbers:
 
 - examples with non-string `Helpful` values are skipped while building
   `sd_sent`;
-- `LOGIC` is keyed by `premise + claim`, matching `Method.ipynb`;
-- the original notebook `pysat_formula` string parser is used;
+- `LOGIC` is keyed by `premise + claim`, matching the original experiment code;
+- the original `pysat_formula` string parser is used;
 - neutral examples are shuffled with `random_state=1129`;
 - each class is scanned until up to 140 successful evaluated examples are
   appended.
