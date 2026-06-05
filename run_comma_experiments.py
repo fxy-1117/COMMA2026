@@ -1,6 +1,6 @@
-"""Task-list entry point for the COMMA experiment pipeline.
+"""Experiment-list entry point for the COMMA experiment pipeline.
 
-Select experiment settings by editing ``EXPERIMENT_TASKS`` below. The rest of
+Select experiment groups by editing ``RUN_EXPERIMENTS`` below. The rest of
 the script keeps the notebook's experiment semantics and writes reproducible,
 review-friendly artifacts into an independent output directory.
 """
@@ -10,7 +10,6 @@ from __future__ import annotations
 import argparse
 import contextlib
 import sys
-from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -19,7 +18,7 @@ from comma_core.dataset_builder import build_evaluation_items
 from comma_core.experiment_runner import ExperimentRunner
 from comma_core.model_runtime import load_logic_engine
 from comma_core.neural_cache import install_neural_caches
-from comma_core.paper_reference import EXP3_STEPS
+from comma_core.paper_reference import EXP3_STEPS, TAU_C_VALUES, TAU_M_VALUES
 from comma_core.result_writer import write_outputs
 from comma_core.runtime_utils import set_seed
 
@@ -29,100 +28,35 @@ DEFAULT_CACHE_DIR = ROOT / ".experiment_cache"
 DEFAULT_OUTPUT_ROOT = ROOT / "experiment_outputs"
 
 
-@dataclass(frozen=True)
-class ExperimentTask:
-    """One concrete experiment setting.
-
-    Comment out task lines in ``EXPERIMENT_TASKS`` to skip them. Uncomment or
-    add a line to run that setting.
-    """
-
-    experiment: str
-    tau_m: float
-    tau_c: int
-    step: Optional[int] = None
-
-    def as_setting(self) -> Tuple[str, float, int, Optional[int]]:
-        return (self.experiment, self.tau_m, self.tau_c, self.step)
-
-
 # Edit this list to choose what to run.
 #
 # Examples:
-# - Comment out a line to skip that setting.
-# - Leave only one line uncommented for a quick single-setting run.
-# - Exp3 uses ``step``; Exp1/Exp2 leave ``step`` empty.
-EXPERIMENT_TASKS: List[ExperimentTask] = [
-    # Experiment 1: no implicit premise.
-    ExperimentTask("exp1", 0.50, 80),
-    ExperimentTask("exp1", 0.50, 90),
-    ExperimentTask("exp1", 0.50, 100),
-    ExperimentTask("exp1", 0.55, 80),
-    ExperimentTask("exp1", 0.55, 90),
-    ExperimentTask("exp1", 0.55, 100),
-    ExperimentTask("exp1", 0.60, 80),
-    ExperimentTask("exp1", 0.60, 90),
-    ExperimentTask("exp1", 0.60, 100),
-    ExperimentTask("exp1", 0.65, 80),
-    ExperimentTask("exp1", 0.65, 90),
-    ExperimentTask("exp1", 0.65, 100),
-    ExperimentTask("exp1", 0.70, 80),
-    ExperimentTask("exp1", 0.70, 90),
-    ExperimentTask("exp1", 0.70, 100),
-    ExperimentTask("exp1", 0.75, 80),
-    ExperimentTask("exp1", 0.75, 90),
-    ExperimentTask("exp1", 0.75, 100),
-    ExperimentTask("exp1", 0.80, 80),
-    ExperimentTask("exp1", 0.80, 90),
-    ExperimentTask("exp1", 0.80, 100),
-
-    # Experiment 2: single implicit premise.
-    ExperimentTask("exp2", 0.50, 80),
-    ExperimentTask("exp2", 0.50, 90),
-    ExperimentTask("exp2", 0.50, 100),
-    ExperimentTask("exp2", 0.55, 80),
-    ExperimentTask("exp2", 0.55, 90),
-    ExperimentTask("exp2", 0.55, 100),
-    ExperimentTask("exp2", 0.60, 80),
-    ExperimentTask("exp2", 0.60, 90),
-    ExperimentTask("exp2", 0.60, 100),
-    ExperimentTask("exp2", 0.65, 80),
-    ExperimentTask("exp2", 0.65, 90),
-    ExperimentTask("exp2", 0.65, 100),
-    ExperimentTask("exp2", 0.70, 80),
-    ExperimentTask("exp2", 0.70, 90),
-    ExperimentTask("exp2", 0.70, 100),
-    ExperimentTask("exp2", 0.75, 80),
-    ExperimentTask("exp2", 0.75, 90),
-    ExperimentTask("exp2", 0.75, 100),
-    ExperimentTask("exp2", 0.80, 80),
-    ExperimentTask("exp2", 0.80, 90),
-    ExperimentTask("exp2", 0.80, 100),
-
-    # Experiment 3: step analysis at tau_m=0.60, tau_c=80.
-    ExperimentTask("exp3", 0.60, 80, step=0),
-    ExperimentTask("exp3", 0.60, 80, step=1),
-    ExperimentTask("exp3", 0.60, 80, step=2),
-    ExperimentTask("exp3", 0.60, 80, step=3),
-    ExperimentTask("exp3", 0.60, 80, step=4),
-    ExperimentTask("exp3", 0.60, 80, step=5),
+# - Keep all three lines to run all paper experiments.
+# - Comment out a line to skip that experiment.
+# - Leave only "exp3" uncommented to run only the step analysis.
+RUN_EXPERIMENTS: List[str] = [
+    "exp1",
+    "exp2",
+    "exp3",
 ]
 
 
-def selected_settings(tasks: List[ExperimentTask]) -> List[Tuple[str, float, int, Optional[int]]]:
-    """Validate configured tasks and convert them to runner settings."""
-    if not tasks:
-        raise ValueError("EXPERIMENT_TASKS is empty; uncomment at least one task.")
+def selected_settings(experiments: List[str]) -> List[Tuple[str, float, int, Optional[int]]]:
+    """Expand selected experiment groups into concrete parameter settings."""
+    if not experiments:
+        raise ValueError("RUN_EXPERIMENTS is empty; uncomment at least one experiment.")
 
     settings: List[Tuple[str, float, int, Optional[int]]] = []
-    for task in tasks:
-        if task.experiment not in {"exp1", "exp2", "exp3"}:
-            raise ValueError(f"unknown experiment: {task.experiment}")
-        if task.experiment == "exp3" and task.step not in EXP3_STEPS:
-            raise ValueError(f"exp3 requires step in {EXP3_STEPS}: {task}")
-        if task.experiment in {"exp1", "exp2"} and task.step is not None:
-            raise ValueError(f"{task.experiment} does not use step: {task}")
-        settings.append(task.as_setting())
+    for experiment in experiments:
+        if experiment in {"exp1", "exp2"}:
+            for tau_m in TAU_M_VALUES:
+                for tau_c in TAU_C_VALUES:
+                    settings.append((experiment, tau_m, tau_c, None))
+        elif experiment == "exp3":
+            for step in EXP3_STEPS:
+                settings.append(("exp3", 0.6, 80, step))
+        else:
+            raise ValueError(f"unknown experiment: {experiment}")
     return settings
 
 
@@ -157,11 +91,11 @@ def run() -> None:
     parser.add_argument(
         "--list-tasks",
         action="store_true",
-        help="Print the tasks configured in EXPERIMENT_TASKS and exit.",
+        help="Print the settings expanded from RUN_EXPERIMENTS and exit.",
     )
     args = parser.parse_args()
 
-    settings = selected_settings(EXPERIMENT_TASKS)
+    settings = selected_settings(RUN_EXPERIMENTS)
     if args.list_tasks:
         for index, setting in enumerate(settings, start=1):
             print(f"{index:02d}. {format_setting(setting)}")

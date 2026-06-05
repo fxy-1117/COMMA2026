@@ -22,8 +22,9 @@ experiments.
 ## Main Entry Point
 
 Use `run_comma_experiments.py` to run the cleaned experiment pipeline. The
-script reads the `EXPERIMENT_TASKS` list near the top of the file; comment or
-uncomment `ExperimentTask(...)` lines there to choose which settings to run.
+script reads the `RUN_EXPERIMENTS` list near the top of the file; comment or
+uncomment `"exp1"`, `"exp2"`, or `"exp3"` there to choose which experiment
+groups to run.
 
 Run it from the repository root with the same Python environment used for the
 original experiments:
@@ -66,17 +67,14 @@ reported numbers:
 - each class is scanned until up to 140 successful evaluated examples are
   appended.
 
-For example, to run only one Experiment 2 setting, edit
-`run_comma_experiments.py` so only this task line remains uncommented:
+For example, to run only Experiment 3, edit `run_comma_experiments.py` like this:
 
 ```python
-ExperimentTask("exp2", 0.60, 80),
-```
-
-For an Experiment 3 step setting, keep the `step` value:
-
-```python
-ExperimentTask("exp3", 0.60, 80, step=4),
+RUN_EXPERIMENTS = [
+    # "exp1",
+    # "exp2",
+    "exp3",
+]
 ```
 
 Disk caches are stored under `.experiment_cache/` for AMR logic, NLI predictions,
