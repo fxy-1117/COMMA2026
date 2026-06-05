@@ -1,29 +1,39 @@
-"""Disk caches for neural model calls."""
+"""Persistent caches for neural-model calls used during evaluation.
+
+The logic engine calls the NLI model and sentence-similarity model many times
+for repeated text pairs. These wrappers memoize those calls on disk so reruns
+can reuse previous neural predictions without changing the experiment logic.
+"""
 
 from __future__ import annotations
 
 from pathlib import Path
 from types import ModuleType
-from typing import Any
+from typing import Any, Callable
 
-from .utils import load_json_cache, save_json_cache, stable_key
+from .runtime_utils import load_json_cache, save_json_cache, stable_key
 
 
-def install_neural_caches(method: ModuleType, cache_dir: Path):
-    """Wrap the notebook NLI and similarity functions with JSON caches."""
+def install_neural_caches(logic_engine: ModuleType, cache_dir: Path) -> Callable[[], None]:
+    """Wrap the logic engine's NLI and similarity functions with JSON caches."""
     nli_path = cache_dir / "nli_cache.json"
     score_path = cache_dir / "score_cache.json"
     nli_cache = load_json_cache(nli_path)
     score_cache = load_json_cache(score_path)
     dirty = {"nli": False, "score": False}
 
-    original_nli = method.NLI
-    original_score = method.score
+    original_nli = logic_engine.NLI
+    original_score = logic_engine.score
 
     def cached_nli(x: str, y: str, tokenizer: Any = None, model: Any = None):
         key = stable_key([x, y])
         if key not in nli_cache:
-            label, confidence = original_nli(x, y, method.nli_tokenizer, method.model_nli)
+            label, confidence = original_nli(
+                x,
+                y,
+                logic_engine.nli_tokenizer,
+                logic_engine.model_nli,
+            )
             nli_cache[key] = [label, confidence]
             dirty["nli"] = True
         label, confidence = nli_cache[key]
@@ -47,6 +57,6 @@ def install_neural_caches(method: ModuleType, cache_dir: Path):
             save_json_cache(score_path, score_cache)
             dirty["score"] = False
 
-    method.NLI = cached_nli
-    method.score = cached_score
+    logic_engine.NLI = cached_nli
+    logic_engine.score = cached_score
     return flush

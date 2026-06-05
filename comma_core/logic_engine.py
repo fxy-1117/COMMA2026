@@ -1,12 +1,14 @@
-﻿# -*- coding: utf-8 -*-
-"""Core logical/NLI functions extracted from the original experiment code.
+# -*- coding: utf-8 -*-
+"""Neurosymbolic logic engine used by the COMMA experiments.
 
-This module intentionally keeps the original implementation
-semantics so the experiment runner produces the same values.
+Most functions in this module are intentionally close to the original notebook
+implementation. The formula transformations, proof search, and fallback NLI
+calls are result-sensitive, so the surrounding runner handles cleanliness and
+caching while this module preserves the experiment semantics.
 """
 
 
-# --- original experiment cell 0 ---
+# --- Logic and SAT dependencies ---
 import re
 from operator import itemgetter
 from amr_logic_converter import types
@@ -15,7 +17,7 @@ from sympy import Symbol
 from pysat.formula import CNF
 from pysat.solvers import Solver
 
-# --- original experiment cell 1 ---
+# --- AMR parser, AMR-to-logic converter, and sentiment model ---
 from transition_amr_parser.parse import AMRParser
 from amr_logic_converter import AmrLogicConverter
 from transformers import pipeline
@@ -28,12 +30,12 @@ parser = AMRParser.from_pretrained('AMR3-joint-ontowiki-seed42')
 
 converter = AmrLogicConverter(existentially_quantify_instances=False,invert_relations=True)
 
-# --- original experiment cell 2 ---
+# --- Sentence-similarity model used by proof fallback rules ---
 from sentence_transformers import SentenceTransformer, util
 model = SentenceTransformer('BAAI/bge-small-en-v1.5')
 # model = SentenceTransformer('Alibaba-NLP/gte-large-en-v
 
-# --- original experiment cell 3 ---
+# --- Formula normalization utilities ---
 from amr_logic_converter.types import *
 from typing import Optional, Dict
 def strip_suffix(symbol: str) -> str:
@@ -790,7 +792,7 @@ def merge_ARG1_predicates(clause: Clause) -> Clause:
     else:
         logger.warning(f"Unhandled clause type: {type(clause)}")
         return clause
-# --- original experiment cell 4 ---
+# --- AMR-to-logic conversion ---
 def generate_logic(data):
     tem  = []
     temm = []
@@ -811,7 +813,7 @@ def generate_logic(data):
         n+=1
     return tem,temm, r1,r2
 
-# --- original experiment cell 5 ---
+# --- Formula post-processing helpers ---
 def combine(final,f = False):
     init = True
     for i in final:
@@ -835,7 +837,7 @@ def combine(final,f = False):
             
     return init
 
-# --- original experiment cell 6 ---
+# --- Formula rendering ---
 import copy
 def transform(formula,X):
 #     print(X)
@@ -871,7 +873,7 @@ def transform(formula,X):
     
     return final
 
-# --- original experiment cell 7 ---
+# --- Formula extraction helpers ---
 def extract(formula,l= 0):
     and_list = []
     var = {}
@@ -913,7 +915,7 @@ def extract(formula,l= 0):
             arg.append(tem+[formula.predicate.symbol]+[l])                                
     return and_list,arg
 
-# --- original experiment cell 9 ---
+# --- Neural similarity helper ---
 def score(s1,s2):
     sentences = [s1,s2]
 #                 print(sentences)
@@ -921,7 +923,7 @@ def score(s1,s2):
     embedding_2 = model.encode(sentences[1], convert_to_tensor=True,show_progress_bar=False)
     return util.pytorch_cos_sim(embedding_1, embedding_2)[0][0]
 
-# --- original experiment cell 10 ---
+# --- PySAT formula conversion ---
 def pysat_formula(formula):
     tem_list = []
     for i in str(formula).split(" & "):
@@ -938,7 +940,7 @@ def pysat_formula(formula):
             tem_list.append(tem_tem)
     return tem_list
 
-# --- original experiment cell 13 ---
+# --- Proof search with neural fallbacks ---
 no_ = []
 def prove(data, threshold,c_threshold):
     # Initialize lists and dictionaries
@@ -1167,7 +1169,7 @@ def prove(data, threshold,c_threshold):
     else:
         return "neu", max_dict
 
-# --- original experiment cell 14 ---
+# --- NLI model and helper ---
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -1191,7 +1193,7 @@ def NLI(x,y,tokenizer,model):
 #     print(prediction)
     return max(prediction, key=prediction.get),max(prediction.values())
 
-# --- original experiment cell 15 ---
+# --- Predicate substitution helper ---
 def subsitute(x,y,replaceX,replaceXX,maxx,i,j,thre,ct,m = None,mm = False,neg =False):
     
     tems = score(x,y)
@@ -1242,7 +1244,7 @@ def subsitute(x,y,replaceX,replaceXX,maxx,i,j,thre,ct,m = None,mm = False,neg =F
                     
     return False
 
-# --- original experiment cell 16 ---
+# --- Public logic transformation entry point ---
 def transform_logic(x):
     return (remove_duplicate_predicates(((merge_quant_predicates(
                                                        (merge_mod_predicates(

@@ -1,4 +1,9 @@
-﻿"""Evaluation loop for Exp1/Exp2/Exp3."""
+"""Evaluation loop for the three COMMA experiment families.
+
+The runner is intentionally close to the notebook control flow: it scans the
+prepared items in order, skips failed proof attempts, and stops each class only
+after 140 successful predictions have been appended.
+"""
 
 from __future__ import annotations
 
@@ -6,11 +11,11 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, Dict, List, Optional
 
-from .expected import EXPECTED_ACCURACY, LABELS
-from .utils import load_pickle_cache, save_pickle_cache, stable_key
+from .paper_reference import EXPECTED_ACCURACY, LABELS
+from .runtime_utils import load_pickle_cache, save_pickle_cache, stable_key
 
 
-class ExperimentEvaluator:
+class ExperimentRunner:
     """Run settings with the same control flow as the original experiment code.
 
     The important control-flow detail is that class counters are incremented only
@@ -21,32 +26,43 @@ class ExperimentEvaluator:
 
     def __init__(
         self,
-        method: ModuleType,
-        sd_sent: List[List[str]],
+        logic_engine: ModuleType,
+        evaluation_items: List[List[str]],
         cache_dir: Path,
         preload_logic: bool,
     ) -> None:
-        self.method = method
-        self.sd_sent = sd_sent
+        self.logic_engine = logic_engine
+        self.evaluation_items = evaluation_items
         self.cache_dir = cache_dir
         self.sentence_cache = load_pickle_cache(cache_dir / "sentence_logic_cache.pkl")
         self.item_cache = load_pickle_cache(cache_dir / "logic_cache.pkl")
         self.logic_dirty = False
 
-        self.method.LOGIC = {}
-        self.method.not_work = []
-        self.method.both = []
+        self.logic_engine.LOGIC = {}
+        self.logic_engine.not_work = []
+        self.logic_engine.both = []
 
         if preload_logic:
             self.preload_stats = self.preload_logic()
         else:
-            self.preload_stats = {"items": len(sd_sent), "preloaded": 0, "missing": len(sd_sent), "duplicates": 0}
+            self.preload_stats = {
+                "items": len(evaluation_items),
+                "preloaded": 0,
+                "missing": len(evaluation_items),
+                "duplicates": 0,
+            }
 
     def preload_logic(self) -> Dict[str, int]:
-        """Fill method.LOGIC from disk caches using the notebook key format."""
-        stats = {"items": 0, "from_sentence_cache": 0, "from_item_cache": 0, "missing": 0, "duplicates": 0}
-        logic = self.method.LOGIC
-        for item in self.sd_sent:
+        """Fill ``logic_engine.LOGIC`` from disk caches using notebook keys."""
+        stats = {
+            "items": 0,
+            "from_sentence_cache": 0,
+            "from_item_cache": 0,
+            "missing": 0,
+            "duplicates": 0,
+        }
+        logic = self.logic_engine.LOGIC
+        for item in self.evaluation_items:
             stats["items"] += 1
             notebook_key = item[0] + item[1]
             if notebook_key in logic:
@@ -78,15 +94,15 @@ class ExperimentEvaluator:
         final formulas while avoiding fragile large AMR batches.
         """
         notebook_key = item[0] + item[1]
-        logic = self.method.LOGIC
+        logic = self.logic_engine.LOGIC
         if notebook_key not in logic:
             sentences = item[:-1]
             forms = []
             for sentence in sentences:
                 if sentence not in self.sentence_cache:
                     print(f"generating logic for sentence: {sentence[:120]!r}")
-                    formula = self.method.generate_logic([sentence])[-2][0]
-                    self.sentence_cache[sentence] = self.method.transform_logic(formula)
+                    formula = self.logic_engine.generate_logic([sentence])[-2][0]
+                    self.sentence_cache[sentence] = self.logic_engine.transform_logic(formula)
                     self.logic_dirty = True
                     self.flush_logic_caches()
                 forms.append(self.sentence_cache[sentence])
@@ -98,6 +114,7 @@ class ExperimentEvaluator:
 
     @staticmethod
     def proof_input(experiment: str, pre_data: List[Any], step: Optional[int]) -> List[Any]:
+        """Select premise, claim, and implicit-premise steps for one run."""
         if experiment == "exp1" or step == 0:
             return [pre_data[0], pre_data[1]]
         if experiment == "exp2":
@@ -115,9 +132,11 @@ class ExperimentEvaluator:
         y_pred: List[str] = []
         counters = {"ent": 0, "con": 0, "neu": 0}
         skipped = 0
+        # The notebook used ``> 139``, which yields 140 successful predictions
+        # per class after skipped and ambiguous examples are ignored.
         fix_number = 139
 
-        for item in self.sd_sent[:]:
+        for item in self.evaluation_items[:]:
             label = item[-1]
             if label == "ent" and counters["ent"] > fix_number:
                 continue
@@ -129,7 +148,7 @@ class ExperimentEvaluator:
             try:
                 pre_data = self.get_logic_forms(item)
                 proof_data = self.proof_input(experiment, pre_data, step)
-                result = self.method.prove(proof_data, tau_m, tau_c)
+                result = self.logic_engine.prove(proof_data, tau_m, tau_c)
                 if result and result[0] != "both":
                     predicted = result[0]
                 else:

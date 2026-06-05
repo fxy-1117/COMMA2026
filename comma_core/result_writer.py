@@ -1,4 +1,8 @@
-"""Result table writing and comparison helpers."""
+"""Write experiment outputs and paper-reference comparisons.
+
+Each run directory receives the full JSON results, a compact CSV summary, and
+an optional comparison table against the values reported in the paper figures.
+"""
 
 from __future__ import annotations
 
@@ -7,10 +11,11 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-from .expected import EXPECTED_EXP3_METRICS, LABELS
+from .paper_reference import EXPECTED_EXP3_METRICS, LABELS
 
 
 def result_to_summary_row(result: Dict[str, Any], source: str) -> Dict[str, Any]:
+    """Flatten one result dictionary into a CSV-friendly row."""
     row: Dict[str, Any] = {
         "experiment": result["experiment"],
         "tau_m": result["tau_m"],
@@ -33,6 +38,7 @@ def result_to_summary_row(result: Dict[str, Any], source: str) -> Dict[str, Any]
 
 
 def comparison_rows(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Build rows comparing actual metrics with paper-reported references."""
     rows: List[Dict[str, Any]] = []
     for result in results:
         key = (result["experiment"], round(result["tau_m"], 2), result["tau_c"], result["step"])
@@ -73,6 +79,7 @@ def comparison_rows(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 
 def write_table(path: Path, rows: List[Dict[str, Any]]) -> None:
+    """Write a CSV table when there is at least one row."""
     if not rows:
         return
     path.parent.mkdir(parents=True, exist_ok=True)

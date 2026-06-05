@@ -1,1 +1,1 @@
-"""Utilities for running the COMMA experiments as Python modules."""
+"""Core modules for running the COMMA neurosymbolic RTE experiments."""

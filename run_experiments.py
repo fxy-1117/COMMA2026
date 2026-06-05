@@ -1,4 +1,8 @@
-"""Command-line entry point for COMMA experiment runs."""
+"""Command-line entry point for the COMMA experiment pipeline.
+
+The CLI keeps the notebook's experiment semantics but writes reproducible,
+review-friendly artifacts into an independent output directory.
+"""
 
 from __future__ import annotations
 
@@ -9,13 +13,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-from comma_core.cache import install_neural_caches
-from comma_core.data import build_sd_sent
-from comma_core.evaluator import ExperimentEvaluator
-from comma_core.expected import EXP3_STEPS, TAU_C_VALUES, TAU_M_VALUES
-from comma_core.outputs import write_outputs
-from comma_core.runtime import load_method_module
-from comma_core.utils import set_seed
+from comma_core.dataset_builder import build_evaluation_items
+from comma_core.experiment_runner import ExperimentRunner
+from comma_core.model_runtime import load_logic_engine
+from comma_core.neural_cache import install_neural_caches
+from comma_core.paper_reference import EXP3_STEPS, TAU_C_VALUES, TAU_M_VALUES
+from comma_core.result_writer import write_outputs
+from comma_core.runtime_utils import set_seed
 
 
 ROOT = Path(__file__).resolve().parent
@@ -27,7 +31,7 @@ def settings_for(
     experiments: List[str],
     exp3_steps: Optional[List[int]] = None,
 ) -> List[Tuple[str, float, int, Optional[int]]]:
-    """Expand CLI experiment names into concrete parameter settings."""
+    """Expand experiment names into concrete parameter settings."""
     settings: List[Tuple[str, float, int, Optional[int]]] = []
     for experiment in experiments:
         if experiment in {"exp1", "exp2"}:
@@ -82,8 +86,8 @@ def run() -> None:
     set_seed(args.seed)
     print("loading experiment runtime")
     sys.stdout.flush()
-    method = load_method_module()
-    flush_neural_caches = install_neural_caches(method, args.cache_dir)
+    logic_engine = load_logic_engine()
+    flush_neural_caches = install_neural_caches(logic_engine, args.cache_dir)
 
     source_by_experiment = {
         "exp1": args.exp12_source,
@@ -95,6 +99,8 @@ def run() -> None:
     detail_path = output_dir / "experiment_detail.log"
 
     with detail_path.open("w", encoding="utf-8") as detail:
+        # Exp1/Exp2 and Exp3 use different source CSVs but share the same
+        # neutral examples and evaluation runner.
         for source_name in [args.exp12_source, args.exp3_source]:
             group_settings = [
                 setting for setting in settings if source_by_experiment[setting[0]] == source_name
@@ -102,16 +108,16 @@ def run() -> None:
             if not group_settings:
                 continue
 
-            print(f"building sd_sent from {source_name}")
+            print(f"building evaluation items from {source_name}")
             sys.stdout.flush()
-            sd_sent, data_stats = build_sd_sent(
+            evaluation_items, data_stats = build_evaluation_items(
                 ROOT / source_name,
                 args.seed,
                 ROOT / args.neutral_source,
             )
-            evaluator = ExperimentEvaluator(
-                method,
-                sd_sent,
+            evaluator = ExperimentRunner(
+                logic_engine,
+                evaluation_items,
                 args.cache_dir,
                 preload_logic=not args.no_preload_logic,
             )

@@ -1,4 +1,4 @@
-"""Small shared utilities for experiment runs."""
+"""Shared runtime, seeding, and cache I/O helpers."""
 
 from __future__ import annotations
 
@@ -41,12 +41,14 @@ def set_seed(seed: int) -> None:
 
 
 def load_json_cache(path: Path) -> Dict[str, Any]:
+    """Load a JSON dictionary cache, returning an empty cache if absent."""
     if not path.exists():
         return {}
     return json.loads(path.read_text(encoding="utf-8"))
 
 
 def save_json_cache(path: Path, data: Dict[str, Any]) -> None:
+    """Atomically write a JSON dictionary cache."""
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
@@ -54,6 +56,7 @@ def save_json_cache(path: Path, data: Dict[str, Any]) -> None:
 
 
 def load_pickle_cache(path: Path) -> Dict[str, Any]:
+    """Load a pickle dictionary cache, returning an empty cache if absent."""
     if not path.exists():
         return {}
     with path.open("rb") as handle:
@@ -61,6 +64,7 @@ def load_pickle_cache(path: Path) -> Dict[str, Any]:
 
 
 def save_pickle_cache(path: Path, data: Dict[str, Any]) -> None:
+    """Atomically write a pickle dictionary cache."""
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
     with tmp.open("wb") as handle:

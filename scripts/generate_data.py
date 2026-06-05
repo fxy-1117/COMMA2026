@@ -170,6 +170,7 @@ def process_xml_files(
 
 
 def generate_arggraph_dataset(args: argparse.Namespace) -> None:
+    """Generate the combined ArgGraph CSV from XML corpus files."""
     rows = process_xml_files(args.input, separate_dir=args.separate_dir)
     if not rows:
         raise SystemExit("No data extracted.")
@@ -180,6 +181,7 @@ def generate_arggraph_dataset(args: argparse.Namespace) -> None:
 
 
 def nli_label(premise: str, hypothesis: str, tokenizer: object, model: object) -> tuple[str, float]:
+    """Return the highest-probability NLI label and confidence score."""
     import torch
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -196,6 +198,7 @@ def nli_label(premise: str, hypothesis: str, tokenizer: object, model: object) -
 
 
 def generate_neutral_pairs(args: argparse.Namespace) -> None:
+    """Generate candidate neutral pairs using an NLI confidence threshold."""
     import pandas as pd
     import torch
     from tqdm import tqdm
@@ -238,6 +241,7 @@ def generate_neutral_pairs(args: argparse.Namespace) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the command-line parser for data-generation utilities."""
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -261,6 +265,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
+    """Run the selected data-generation command."""
     parser = build_parser()
     args = parser.parse_args()
     args.func(args)

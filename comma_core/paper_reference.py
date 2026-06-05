@@ -1,4 +1,8 @@
-"""Reported experiment settings and reference values."""
+"""Experiment grids and paper-reported reference values.
+
+These constants are used only for result comparison in generated output tables.
+They do not affect model decisions, proof search, or dataset construction.
+"""
 
 LABELS = ["con", "ent", "neu"]
 TAU_M_VALUES = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8]

@@ -5,16 +5,19 @@ experiments.
 
 ## Code Layout
 
-- `comma_core/method.py`: core logic from the original experiment code.
-- `comma_core/data.py`: data construction matching the original experiment.
-- `comma_core/cache.py`: disk caches for NLI and similarity calls.
-- `comma_core/evaluator.py`: Exp1/Exp2/Exp3 evaluation loop.
-- `comma_core/outputs.py`: JSON/CSV output writing and comparison tables.
+- `comma_core/logic_engine.py`: neurosymbolic proof, AMR logic, NLI, and similarity engine.
+- `comma_core/dataset_builder.py`: evaluation-item construction matching the original experiment.
+- `comma_core/experiment_runner.py`: Exp1/Exp2/Exp3 evaluation loop.
+- `comma_core/neural_cache.py`: disk caches for NLI and similarity calls.
+- `comma_core/model_runtime.py`: offline/local runtime setup for loading the logic engine.
+- `comma_core/result_writer.py`: JSON/CSV output writing and comparison tables.
+- `comma_core/paper_reference.py`: parameter grids and paper-reported values used for comparison.
 - `comma_core/prompting.py`: prompt templates, DeepSeek wrapper, and output parser.
+- `comma_core/runtime_utils.py`: shared seeding, cache I/O, and local model-loading helpers.
 - `data/`: checked-in CSV files and ArgGraph XML corpus.
 - `prompts/reasoning_chain.md`: human-readable prompt template.
 - `scripts/generate_data.py`: XML-to-CSV and neutral-pair data generation.
-- `run_experiments.py`: thin command-line entry point.
+- `run_experiments.py`: command-line entry point for experiment runs.
 
 ## Main Entry Point
 
@@ -46,8 +49,8 @@ python run_experiments.py --run-id full_run_1129
 The script intentionally preserves the original behaviours that affect the
 reported numbers:
 
-- examples with non-string `Helpful` values are skipped while building
-  `sd_sent`;
+- examples with non-string `Helpful` values are skipped while building the
+  evaluation item list;
 - `LOGIC` is keyed by `premise + claim`, matching the original experiment code;
 - the original `pysat_formula` string parser is used;
 - neutral examples are shuffled with `random_state=1129`;
