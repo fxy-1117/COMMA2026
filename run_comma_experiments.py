@@ -22,6 +22,11 @@ from comma_core.paper_reference import EXP3_STEPS, TAU_C_VALUES, TAU_M_VALUES
 from comma_core.result_writer import write_outputs
 from comma_core.runtime_utils import set_seed
 
+try:
+    from tqdm.auto import tqdm
+except ImportError:
+    tqdm = None
+
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_CACHE_DIR = ROOT / ".experiment_cache"
@@ -67,6 +72,21 @@ def format_setting(setting: Tuple[str, float, int, Optional[int]]) -> str:
     if step is not None:
         label += f" step={step}"
     return label
+
+
+def progress_bar(items: List[Tuple[str, float, int, Optional[int]]], source_name: str):
+    """Return a tqdm progress bar when tqdm is installed."""
+    if tqdm is None:
+        return items
+    return tqdm(items, desc=f"settings from {source_name}", unit="setting")
+
+
+def progress_write(message: str) -> None:
+    """Print without breaking the tqdm display."""
+    if tqdm is None:
+        print(message)
+    else:
+        tqdm.write(message)
 
 
 def resolve_output_dir(output_root: Path, output_dir: Optional[Path], run_id: Optional[str]) -> Path:
@@ -145,9 +165,13 @@ def run() -> None:
             print(f"logic preload: {evaluator.preload_stats}")
             sys.stdout.flush()
 
-            for experiment, tau_m, tau_c, step in group_settings:
+            progress = progress_bar(group_settings, source_name)
+            for experiment, tau_m, tau_c, step in progress:
                 label = format_setting((experiment, tau_m, tau_c, step))
-                print(f"running {label}")
+                if hasattr(progress, "set_postfix_str"):
+                    progress.set_postfix_str(label)
+                else:
+                    print(f"running {label}")
                 sys.stdout.flush()
 
                 # The original proof code is very chatty; keep detailed traces
@@ -166,7 +190,7 @@ def run() -> None:
                 delta = result["accuracy_delta"]
                 expected_text = "n/a" if expected is None else f"{expected:.6f}"
                 delta_text = "n/a" if delta is None else f"{delta:+.6f}"
-                print(
+                progress_write(
                     f"done {label}: accuracy={result['accuracy']:.6f}, "
                     f"expected={expected_text}, delta={delta_text}, n={result['n']}"
                 )
