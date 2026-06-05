@@ -21,14 +21,23 @@ experiments.
 
 ## Main Entry Point
 
-Use `run_comma_experiments.py` to run the cleaned experiment pipeline. Run it from
-the repository root with the same Python environment used for the original
-experiments:
+Use `run_comma_experiments.py` to run the cleaned experiment pipeline. The
+script reads the `EXPERIMENT_TASKS` list near the top of the file; comment or
+uncomment `ExperimentTask(...)` lines there to choose which settings to run.
+
+Run it from the repository root with the same Python environment used for the
+original experiments:
 
 ```powershell
 $env:PYTHONHASHSEED='1129'
 $env:CUBLAS_WORKSPACE_CONFIG=':4096:8'
 python run_comma_experiments.py
+```
+
+To check the currently enabled task list without loading the neural models:
+
+```powershell
+python run_comma_experiments.py --list-tasks
 ```
 
 The script writes:
@@ -57,20 +66,21 @@ reported numbers:
 - each class is scanned until up to 140 successful evaluated examples are
   appended.
 
+For example, to run only one Experiment 2 setting, edit
+`run_comma_experiments.py` so only this task line remains uncommented:
+
+```python
+ExperimentTask("exp2", 0.60, 80),
+```
+
+For an Experiment 3 step setting, keep the `step` value:
+
+```python
+ExperimentTask("exp3", 0.60, 80, step=4),
+```
+
 Disk caches are stored under `.experiment_cache/` for AMR logic, NLI predictions,
 and sentence-similarity scores. These files are ignored by Git.
-
-To run only the Experiment 3 step analysis:
-
-```powershell
-python run_comma_experiments.py --experiments exp3
-```
-
-To run a subset of Experiment 3 steps:
-
-```powershell
-python run_comma_experiments.py --experiments exp3 --exp3-steps 2 3 4 5
-```
 
 ## Prompt Generation
 
