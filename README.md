@@ -17,18 +17,18 @@ experiments.
 - `data/`: checked-in CSV files and ArgGraph XML corpus.
 - `prompts/reasoning_chain.md`: human-readable prompt template.
 - `scripts/generate_data.py`: XML-to-CSV and neutral-pair data generation.
-- `run_experiments.py`: command-line entry point for experiment runs.
+- `run_comma_experiments.py`: command-line entry point for experiment runs.
 
 ## Main Entry Point
 
-Use `run_experiments.py` to run the cleaned experiment pipeline. Run it from
+Use `run_comma_experiments.py` to run the cleaned experiment pipeline. Run it from
 the repository root with the same Python environment used for the original
 experiments:
 
 ```powershell
 $env:PYTHONHASHSEED='1129'
 $env:CUBLAS_WORKSPACE_CONFIG=':4096:8'
-python run_experiments.py
+python run_comma_experiments.py
 ```
 
 The script writes:
@@ -41,7 +41,7 @@ The script writes:
 By default `<run_id>` is a timestamp. You can set it explicitly:
 
 ```powershell
-python run_experiments.py --run-id full_run_1129
+python run_comma_experiments.py --run-id full_run_1129
 ```
 
 ## Experiment Details
@@ -63,13 +63,13 @@ and sentence-similarity scores. These files are ignored by Git.
 To run only the Experiment 3 step analysis:
 
 ```powershell
-python run_experiments.py --experiments exp3
+python run_comma_experiments.py --experiments exp3
 ```
 
 To run a subset of Experiment 3 steps:
 
 ```powershell
-python run_experiments.py --experiments exp3 --exp3-steps 2 3 4 5
+python run_comma_experiments.py --experiments exp3 --exp3-steps 2 3 4 5
 ```
 
 ## Prompt Generation
