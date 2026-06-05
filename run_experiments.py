@@ -58,9 +58,9 @@ def run() -> None:
         choices=["exp1", "exp2", "exp3"],
         default=["exp1", "exp2", "exp3"],
     )
-    parser.add_argument("--exp12-source", default="exp1&exp2.csv")
-    parser.add_argument("--exp3-source", default="exp3.csv")
-    parser.add_argument("--neutral-source", default="neu2.csv")
+    parser.add_argument("--exp12-source", default="data/exp1&exp2.csv")
+    parser.add_argument("--exp3-source", default="data/exp3.csv")
+    parser.add_argument("--neutral-source", default="data/neu2.csv")
     parser.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE_DIR)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--output-dir", type=Path)

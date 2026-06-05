@@ -11,6 +11,7 @@ experiments.
 - `comma_core/evaluator.py`: Exp1/Exp2/Exp3 evaluation loop.
 - `comma_core/outputs.py`: JSON/CSV output writing and comparison tables.
 - `comma_core/prompting.py`: prompt templates, DeepSeek wrapper, and output parser.
+- `data/`: checked-in CSV files and ArgGraph XML corpus.
 - `prompts/reasoning_chain.md`: human-readable prompt template.
 - `scripts/generate_data.py`: XML-to-CSV and neutral-pair data generation.
 - `run_experiments.py`: thin command-line entry point.
@@ -94,11 +95,11 @@ The checked-in CSV files are already enough to run the experiments. To rebuild
 the ArgGraph-derived CSV from XML files:
 
 ```powershell
-python scripts/generate_data.py arggraph --input corpus --output combined_arggraph_dataset.csv
+python scripts/generate_data.py arggraph
 ```
 
 To regenerate neutral pairs with the NLI model:
 
 ```powershell
-python scripts/generate_data.py neutral --input combined_arggraph_dataset.csv --output neu2.csv
+python scripts/generate_data.py neutral
 ```

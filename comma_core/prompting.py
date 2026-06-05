@@ -16,77 +16,28 @@ def _topic_text(topic: str) -> str:
     return str(topic).replace("_", " ")
 
 
-def build_single_reasoning_prompt(
-    premise: str,
-    claim: str,
-    topic: str,
-    label: str,
-) -> str:
-    """Build the one-statement prompt used in the first prompt draft."""
-    return f"""Generate a reasoning statement that connects the premise to the claim based on the label provided, specifically related to the topic provided.
-
-
-**Premise:** {premise}
-**Claim:** {claim}
-**Topic:** {_topic_text(topic)}
-**Label:** {label}
-
-
-**Instructions:**
-- If the label is "contradiction," provide a statement that is implied by the premise but contradicts the claim, while relating to the topic.
-
-- If the label is "entailment," provide a statement that logically links the premise to the claim, while relating to the topic.
-- Limit the statement to 10 words or fewer.
-
-- Use clear, direct language without pronouns.
-- Do not repeat the premise or claim verbatim.
-
-
-**Output Format:**
-Your output must match the following structure exactly. No additional text, headers, or explanations.
-
-Premise: {premise}
-Claim: {claim}
-Helpful: [insert the single helpful reasoning statement here]
-"""
-
-
 def build_reasoning_chain_prompt(
     premise: str,
     claim: str,
     num_statements: Union[int, str],
     topic: str,
     label: str,
-    *,
-    include_topic: bool = True,
 ) -> str:
     """Build the chain prompt used for Exp3 implicit-premise generation."""
-    topic_block = f"\n**Topic:** {_topic_text(topic)}" if include_topic else ""
-    neutral_instruction = (
-        '- If the label is "neutral," provide statements that illustrate no logical '
-        "connection between the premise and the claim.\n"
-        if not include_topic
-        else ""
-    )
-    topic_phrase = (
-        ", specifically related to the topic provided"
-        if include_topic
-        else ""
-    )
-
-    return f"""Generate {num_statements} reasoning statements that connect the premise to the claim based on the provided label{topic_phrase}.
+    return f"""Generate {num_statements} reasoning statements that connect the premise to the claim based on the provided label, specifically related to the topic provided.
 
 
 **Premise:** {premise}
 **Claim:** {claim}
-{topic_block}
+
+**Topic:** {_topic_text(topic)}
 **Label:** {label}
 
 
 **Instructions:**
-- If the label is "contradiction," provide statements that are implied by the premise but contradict the claim{", while relating to the topic" if include_topic else ""}.
-- If the label is "entailment," provide statements that logically links the premise to the claim{", while relating to the topic" if include_topic else ""}.
-{neutral_instruction}- Ensure exactly {num_statements} statements are generated to establish a coherent connection.
+- If the label is "contradiction," provide statements that are implied by the premise but contradict the claim, while relating to the topic.
+- If the label is "entailment," provide statements that logically links the premise to the claim, while relating to the topic.
+- Ensure exactly {num_statements} statements are generated to establish a coherent connection.
 
 - Each statement must be concise, logically follow from the previous one, and be limited to 10 words or fewer.
 - Use clear, direct language without pronouns.

@@ -130,9 +130,7 @@ class ExperimentEvaluator:
                 pre_data = self.get_logic_forms(item)
                 proof_data = self.proof_input(experiment, pre_data, step)
                 result = self.method.prove(proof_data, tau_m, tau_c)
-                if result and result[0] != "both" and result[0] != "neu":
-                    predicted = result[0]
-                elif result and result[0] != "both":
+                if result and result[0] != "both":
                     predicted = result[0]
                 else:
                     skipped += 1

@@ -7,30 +7,13 @@ semantics so the experiment runner produces the same values.
 
 
 # --- original experiment cell 0 ---
-import pandas as pd
-import nltk,re
-import tqdm as tqdm
+import re
 from operator import itemgetter
-from nltk.tokenize import word_tokenize
-from nltk import pos_tag, word_tokenize
 from amr_logic_converter import types
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import precision_score
-from sklearn.metrics import recall_score
-from word_forms.word_forms import get_word_forms
 from sympy.logic.boolalg import to_cnf
-from sympy.abc import A, B,C
-import sympy
-from sklearn.metrics import classification_report
-from sympy import Symbol,simplify_logic
+from sympy import Symbol
 from pysat.formula import CNF
 from pysat.solvers import Solver
-import inflect
-import numpy as np
-from tqdm import tqdm
-# import spacy
-# nlp = spacy.load("en_core_web_sm")
 
 # --- original experiment cell 1 ---
 from transition_amr_parser.parse import AMRParser
@@ -52,8 +35,7 @@ model = SentenceTransformer('BAAI/bge-small-en-v1.5')
 
 # --- original experiment cell 3 ---
 from amr_logic_converter.types import *
-from typing import Union, Tuple, Any, Optional, Dict
-import re
+from typing import Optional, Dict
 def strip_suffix(symbol: str) -> str:
     """
     Removes numerical suffixes and slashes from a predicate symbol.
@@ -808,11 +790,6 @@ def merge_ARG1_predicates(clause: Clause) -> Clause:
     else:
         logger.warning(f"Unhandled clause type: {type(clause)}")
         return clause
-def transform_logic(x):
-    return (remove_duplicate_predicates(remove_specific_predicates((merge_quant_predicates(
-                                                       merge_name_predicates(merge_mod_predicates(flatten_and_operations_recursive
-                                                                             (transform_replace_constants(x)))))))))
-
 # --- original experiment cell 4 ---
 def generate_logic(data):
     tem  = []
@@ -935,20 +912,6 @@ def extract(formula,l= 0):
             and_list.append(["ARG"]+ tem+[formula.predicate.symbol])
             arg.append(tem+[formula.predicate.symbol]+[l])                                
     return and_list,arg
-
-# --- original experiment cell 8 ---
-def get_merge(arg_set):
-    merge_dict = []
-    for i in arg_set:
-        if i[2] == ":ARG":
-            for j in arg_set:
-                if j[2] == ":ARG":
-                    if i != j:
-                        if i[0] == j[1]:
-                            if [i[1],j[0]] not in merge_dict and [j[0],i[1]] not in merge_dict:
-                    
-                                merge_dict.append([i[1],j[0],i,j])
-    return merge_dict
 
 # --- original experiment cell 9 ---
 def score(s1,s2):
