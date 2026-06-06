@@ -1,8 +1,8 @@
 # Reasoning-Chain Prompt
 
-This prompt is used to ask an LLM for implicit reasoning statements that connect
-a premise to a claim. The generated text is stored in the `Helpful` column used
-by Experiment 2 and Experiment 3.
+This prompt is used to ask an LLM for multiple implicit reasoning statements
+that connect a premise to a claim. The generated text is stored in the `Helpful`
+column used by Experiment 3.
 
 ## Chain Prompt With Topic
 
@@ -25,7 +25,7 @@ Generate {num_statements} reasoning statements that connect the premise to the c
 - Each statement must be concise, logically follow from the previous one, and be limited to 10 words or fewer.
 - Use clear, direct language without pronouns.
 - Do not repeat the premise or claim verbatim.
-- Separate multiple statements with "Ўъ" in your output.
+- Separate multiple statements with "→" in your output.
 
 
 **Output Format:**

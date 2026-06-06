@@ -7,7 +7,7 @@ import os
 from typing import Dict, Optional, Union
 
 
-REASONING_SEPARATOR = " \u040e\u044a "
+REASONING_SEPARATOR = " \u2192 "
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 DEEPSEEK_MODEL = "deepseek-chat"
 
@@ -51,6 +51,41 @@ Your output must follow this structure precisely. No additional text, headers, o
 Premise: {premise}
 Claim: {claim}
 Helpful: [insert reasoning chain here]
+"""
+
+
+def build_single_implicit_prompt(
+    premise: str,
+    claim: str,
+    topic: str,
+    label: str,
+) -> str:
+    """Build the single implicit-premise prompt used for Exp2 data."""
+    return f"""Generate a reasoning statement that connects the premise to the claim based on the label provided, specifically related to the topic provided.
+
+
+**Premise:** {premise}
+**Claim:** {claim}
+**Topic:** {_topic_text(topic)}
+**Label:** {label}
+
+
+**Instructions:**
+- If the label is "contradiction," provide a statement that is implied by the premise but contradicts the claim, while relating to the topic.
+
+- If the label is "entailment," provide a statement that logically links the premise to the claim, while relating to the topic.
+- Limit the statement to 10 words or fewer.
+
+- Use clear, direct language without pronouns.
+- Do not repeat the premise or claim verbatim.
+
+
+**Output Format:**
+Your output must match the following structure exactly. No additional text, headers, or explanations.
+
+Premise: {premise}
+Claim: {claim}
+Helpful: [insert the single helpful reasoning statement here]
 """
 
 

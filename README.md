@@ -15,7 +15,8 @@ experiments.
 - `comma_core/prompting.py`: prompt templates, DeepSeek wrapper, and output parser.
 - `comma_core/runtime_utils.py`: shared seeding, cache I/O, and local model-loading helpers.
 - `data/`: checked-in CSV files and ArgGraph XML corpus.
-- `prompts/reasoning_chain.md`: human-readable prompt template.
+- `prompts/single_implicit_premise.md`: prompt used for the single implicit premise in Experiment 2.
+- `prompts/reasoning_chain.md`: prompt used for the reasoning chain in Experiment 3.
 - `scripts/generate_data.py`: XML-to-CSV and neutral-pair data generation.
 - `run_comma_experiments.py`: command-line entry point for experiment runs.
 
@@ -82,13 +83,25 @@ and sentence-similarity scores. These files are ignored by Git.
 
 ## Prompt Generation
 
-The prompt template used for implicit-premise generation is documented in
-`prompts/reasoning_chain.md` and implemented in `comma_core.prompting`.
+The prompt templates used for implicit-premise generation are documented in
+`prompts/single_implicit_premise.md` and `prompts/reasoning_chain.md`, and are
+implemented in `comma_core.prompting`.
 
 ```python
-from comma_core.prompting import build_reasoning_chain_prompt, parse_chain_output
+from comma_core.prompting import (
+    build_reasoning_chain_prompt,
+    build_single_implicit_prompt,
+    parse_chain_output,
+)
 
-prompt = build_reasoning_chain_prompt(
+single_prompt = build_single_implicit_prompt(
+    premise="...",
+    claim="...",
+    topic="...",
+    label="entailment",
+)
+
+chain_prompt = build_reasoning_chain_prompt(
     premise="...",
     claim="...",
     num_statements="six",
