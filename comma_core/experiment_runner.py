@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from .paper_reference import EXPECTED_ACCURACY, LABELS
 from .runtime_utils import load_pickle_cache, save_pickle_cache, stable_key
@@ -134,7 +134,14 @@ class ExperimentRunner:
             return [pre_data[0], pre_data[1]] + pre_data[2 : 2 + step]
         raise ValueError(f"unknown experiment: {experiment}")
 
-    def evaluate(self, experiment: str, tau_m: float, tau_c: int, step: Optional[int]) -> Dict[str, Any]:
+    def evaluate(
+        self,
+        experiment: str,
+        tau_m: float,
+        tau_c: int,
+        step: Optional[int],
+        progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+    ) -> Dict[str, Any]:
         from sklearn.metrics import accuracy_score, classification_report
 
         y_true: List[str] = []
@@ -145,13 +152,31 @@ class ExperimentRunner:
         # per class after skipped and ambiguous examples are ignored.
         fix_number = 139
 
-        for item in self.evaluation_items[:]:
+        def emit_progress(scanned: int) -> None:
+            if progress_callback is None:
+                return
+            correct = sum(1 for actual, predicted in zip(y_true, y_pred) if actual == predicted)
+            evaluated = len(y_true)
+            progress_callback(
+                {
+                    "scanned": scanned,
+                    "evaluated": evaluated,
+                    "skipped": skipped,
+                    "counters": counters.copy(),
+                    "accuracy": correct / evaluated if evaluated else 0.0,
+                }
+            )
+
+        for scanned, item in enumerate(self.evaluation_items[:], start=1):
             label = item[-1]
             if label == "ent" and counters["ent"] > fix_number:
+                emit_progress(scanned)
                 continue
             if label == "con" and counters["con"] > fix_number:
+                emit_progress(scanned)
                 continue
             if label == "neu" and counters["neu"] > fix_number:
+                emit_progress(scanned)
                 continue
 
             try:
@@ -162,13 +187,16 @@ class ExperimentRunner:
                     predicted = result[0]
                 else:
                     skipped += 1
+                    emit_progress(scanned)
                     continue
 
                 y_true.append(label)
                 y_pred.append(predicted)
                 counters[label] += 1
+                emit_progress(scanned)
             except Exception:
                 skipped += 1
+                emit_progress(scanned)
                 continue
 
         report = classification_report(y_true, y_pred, labels=LABELS, output_dict=True, zero_division=0)

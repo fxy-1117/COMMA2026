@@ -12,7 +12,7 @@ import contextlib
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from comma_core.dataset_builder import build_evaluation_items
 from comma_core.experiment_runner import ExperimentRunner
@@ -78,7 +78,47 @@ def progress_bar(items: List[Tuple[str, float, int, Optional[int]]], source_name
     """Return a tqdm progress bar when tqdm is installed."""
     if tqdm is None:
         return items
-    return tqdm(items, desc=f"settings from {source_name}", unit="setting")
+    return tqdm(items, desc=f"settings from {source_name}", unit="setting", position=0)
+
+
+def item_progress_bar(total: int, label: str) -> Optional[Any]:
+    """Return a per-item progress bar for one concrete setting."""
+    if tqdm is None:
+        return None
+    return tqdm(total=total, desc=f"items: {label}", unit="item", leave=False, position=1)
+
+
+def make_item_progress_callback(
+    item_progress: Optional[Any],
+) -> Optional[Callable[[Dict[str, Any]], None]]:
+    """Convert runner progress dictionaries into compact tqdm updates."""
+    if item_progress is None:
+        return None
+
+    last_scanned = {"value": 0}
+
+    def callback(state: Dict[str, Any]) -> None:
+        scanned = int(state["scanned"])
+        delta = scanned - last_scanned["value"]
+
+        counters = state["counters"]
+        item_progress.set_postfix_str(
+            "eval={evaluated} skip={skipped} con={con}/140 ent={ent}/140 "
+            "neu={neu}/140 acc={accuracy:.3f}".format(
+                evaluated=state["evaluated"],
+                skipped=state["skipped"],
+                con=counters["con"],
+                ent=counters["ent"],
+                neu=counters["neu"],
+                accuracy=state["accuracy"],
+            ),
+            refresh=False,
+        )
+        if delta > 0:
+            item_progress.update(delta)
+            last_scanned["value"] = scanned
+
+    return callback
 
 
 def progress_write(message: str) -> None:
@@ -176,8 +216,20 @@ def run() -> None:
 
                 # The original proof code is very chatty; keep detailed traces
                 # in a per-run log instead of flooding stdout.
-                with contextlib.redirect_stdout(detail), contextlib.redirect_stderr(detail):
-                    result = evaluator.evaluate(experiment, tau_m, tau_c, step)
+                item_progress = item_progress_bar(len(evaluation_items), label)
+                progress_callback = make_item_progress_callback(item_progress)
+                try:
+                    with contextlib.redirect_stdout(detail), contextlib.redirect_stderr(detail):
+                        result = evaluator.evaluate(
+                            experiment,
+                            tau_m,
+                            tau_c,
+                            step,
+                            progress_callback=progress_callback,
+                        )
+                finally:
+                    if item_progress is not None:
+                        item_progress.close()
                 result["source"] = source_name
                 result["data_stats"] = data_stats
                 results.append(result)
