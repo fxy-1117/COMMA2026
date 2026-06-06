@@ -41,9 +41,13 @@ Run it from the repository root with the Python environment used for the
 neuro-symbolic argument-graph experiments:
 
 ```powershell
-$env:PYTHONHASHSEED='1129'
-$env:CUBLAS_WORKSPACE_CONFIG=':4096:8'
 python run_comma_experiments.py
+```
+
+The default seed is `1129`. To use a different seed, pass `--seed`:
+
+```powershell
+python run_comma_experiments.py --seed 1234
 ```
 
 To check the currently enabled task list without loading the neural models:
