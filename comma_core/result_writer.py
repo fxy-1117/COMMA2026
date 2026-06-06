@@ -1,7 +1,6 @@
-"""Write experiment outputs and paper-reference comparisons.
+"""Write experiment outputs.
 
-Each run directory receives the full JSON results, a compact CSV summary, and
-an optional comparison table against the values reported in the paper figures.
+Each run directory receives the full JSON results and a compact CSV summary.
 """
 
 from __future__ import annotations
@@ -11,7 +10,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-from .paper_reference import EXPECTED_EXP3_METRICS, LABELS
+from .experiment_config import LABELS
 
 
 def result_to_summary_row(result: Dict[str, Any], source: str) -> Dict[str, Any]:
@@ -24,8 +23,6 @@ def result_to_summary_row(result: Dict[str, Any], source: str) -> Dict[str, Any]
         "source": source,
         "n": result["n"],
         "accuracy": result["accuracy"],
-        "expected_accuracy": result["expected_accuracy"],
-        "accuracy_delta": result["accuracy_delta"],
         "skipped": result["skipped"],
     }
     for label in LABELS:
@@ -35,47 +32,6 @@ def result_to_summary_row(result: Dict[str, Any], source: str) -> Dict[str, Any]
         row[f"{label}_f1"] = metrics["f1-score"]
         row[f"{label}_support"] = metrics["support"]
     return row
-
-
-def comparison_rows(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Build rows comparing actual metrics with paper-reported references."""
-    rows: List[Dict[str, Any]] = []
-    for result in results:
-        key = (result["experiment"], round(result["tau_m"], 2), result["tau_c"], result["step"])
-        if result["expected_accuracy"] is not None:
-            rows.append(
-                {
-                    "experiment": result["experiment"],
-                    "tau_m": result["tau_m"],
-                    "tau_c": result["tau_c"],
-                    "step": "" if result["step"] is None else result["step"],
-                    "class": "overall",
-                    "metric": "accuracy",
-                    "actual": result["accuracy"],
-                    "expected": result["expected_accuracy"],
-                    "delta": result["accuracy"] - result["expected_accuracy"],
-                }
-            )
-        if result["experiment"] == "exp3" and key[3] in EXPECTED_EXP3_METRICS:
-            expected_metrics = EXPECTED_EXP3_METRICS[key[3]]
-            for label in LABELS:
-                for metric in ["precision", "recall"]:
-                    actual = round(result["report"][label][metric], 2)
-                    expected = expected_metrics[label][metric]
-                    rows.append(
-                        {
-                            "experiment": result["experiment"],
-                            "tau_m": result["tau_m"],
-                            "tau_c": result["tau_c"],
-                            "step": result["step"],
-                            "class": label,
-                            "metric": metric,
-                            "actual": actual,
-                            "expected": expected,
-                            "delta": actual - expected,
-                        }
-                    )
-    return rows
 
 
 def write_table(path: Path, rows: List[Dict[str, Any]]) -> None:
@@ -101,4 +57,3 @@ def write_outputs(output_dir: Path, results: List[Dict[str, Any]], source_by_exp
         for result in results
     ]
     write_table(output_dir / "experiment_summary.csv", summary)
-    write_table(output_dir / "experiment_comparison.csv", comparison_rows(results))

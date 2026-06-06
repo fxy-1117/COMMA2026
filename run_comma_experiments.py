@@ -15,10 +15,10 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from comma_core.dataset_builder import build_evaluation_items
+from comma_core.experiment_config import EXP3_STEPS, TAU_C_VALUES, TAU_M_VALUES
 from comma_core.experiment_runner import ExperimentRunner
 from comma_core.model_runtime import load_logic_engine
 from comma_core.neural_cache import install_neural_caches
-from comma_core.paper_reference import EXP3_STEPS, TAU_C_VALUES, TAU_M_VALUES
 from comma_core.result_writer import write_outputs
 from comma_core.runtime_utils import set_seed
 
@@ -238,13 +238,11 @@ def run() -> None:
                 flush_neural_caches()
                 write_outputs(output_dir, results, source_by_experiment)
 
-                expected = result["expected_accuracy"]
-                delta = result["accuracy_delta"]
-                expected_text = "n/a" if expected is None else f"{expected:.6f}"
-                delta_text = "n/a" if delta is None else f"{delta:+.6f}"
+                counts = result["class_counts"]
                 progress_write(
                     f"done {label}: accuracy={result['accuracy']:.6f}, "
-                    f"expected={expected_text}, delta={delta_text}, n={result['n']}"
+                    f"n={result['n']}, con={counts['con']}, "
+                    f"ent={counts['ent']}, neu={counts['neu']}, skipped={result['skipped']}"
                 )
                 sys.stdout.flush()
 

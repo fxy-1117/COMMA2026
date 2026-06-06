@@ -7,11 +7,11 @@ experiments.
 
 - `comma_core/logic_engine.py`: neurosymbolic proof, AMR logic, NLI, and similarity engine.
 - `comma_core/dataset_builder.py`: evaluation-item construction matching the original experiment.
+- `comma_core/experiment_config.py`: experiment labels and parameter grids.
 - `comma_core/experiment_runner.py`: Exp1/Exp2/Exp3 evaluation loop.
 - `comma_core/neural_cache.py`: disk caches for NLI and similarity calls.
 - `comma_core/model_runtime.py`: offline/local runtime setup for loading the logic engine.
-- `comma_core/result_writer.py`: JSON/CSV output writing and comparison tables.
-- `comma_core/paper_reference.py`: parameter grids and paper-reported values used for comparison.
+- `comma_core/result_writer.py`: JSON/CSV output writing.
 - `comma_core/prompting.py`: prompt templates, DeepSeek wrapper, and output parser.
 - `comma_core/runtime_utils.py`: shared seeding, cache I/O, and local model-loading helpers.
 - `data/arggraph_xml/`: original ArgGraph XML files.
@@ -21,6 +21,8 @@ experiments.
 - `data/neutral_pairs.csv`: neutral RTE pairs appended during evaluation.
 - `prompts/single_implicit_premise.md`: prompt used for the single implicit premise in Experiment 2.
 - `prompts/reasoning_chain.md`: prompt used for the reasoning chain in Experiment 3.
+- `results/reference_summary.csv`: verified reference summary from a full run.
+- `results/reference_results.json`: verified full reference results from a full run.
 - `scripts/generate_data.py`: XML-to-CSV and neutral-pair data generation.
 - `run_comma_experiments.py`: command-line entry point for experiment runs.
 
@@ -50,7 +52,6 @@ The script writes:
 
 - `experiment_outputs/<run_id>/experiment_results.json`
 - `experiment_outputs/<run_id>/experiment_summary.csv`
-- `experiment_outputs/<run_id>/experiment_comparison.csv`
 - `experiment_outputs/<run_id>/experiment_detail.log`
 
 By default `<run_id>` is a timestamp. You can set it explicitly:
@@ -76,14 +77,19 @@ For example, to run only Experiment 3, edit `run_comma_experiments.py` like this
 
 ```python
 RUN_EXPERIMENTS = [
-    "exp1",
-    "exp2",
     "exp3",
 ]
 ```
 
 Disk caches are stored under `.experiment_cache/` for AMR logic, NLI predictions,
 and sentence-similarity scores. These files are ignored by Git.
+
+## Reference Results
+
+The checked-in files under `results/` are from a full verified run with seed
+`1129`. They are provided as the reference output for reviewers who want to
+compare a fresh run against the reported experiment values. Runtime cache files
+and detailed logs are intentionally not included.
 
 ## Prompt Generation
 

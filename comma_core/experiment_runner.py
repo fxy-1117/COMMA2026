@@ -11,7 +11,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, Callable, Dict, List, Optional
 
-from .paper_reference import EXPECTED_ACCURACY, LABELS
+from .experiment_config import LABELS
 from .runtime_utils import load_pickle_cache, save_pickle_cache, stable_key
 
 
@@ -201,7 +201,6 @@ class ExperimentRunner:
 
         report = classification_report(y_true, y_pred, labels=LABELS, output_dict=True, zero_division=0)
         accuracy = accuracy_score(y_true, y_pred) if y_true else 0.0
-        expected = EXPECTED_ACCURACY.get((experiment, round(tau_m, 2), tau_c, step))
         return {
             "experiment": experiment,
             "tau_m": tau_m,
@@ -211,8 +210,6 @@ class ExperimentRunner:
             "class_counts": counters,
             "skipped": skipped,
             "accuracy": accuracy,
-            "expected_accuracy": expected,
-            "accuracy_delta": None if expected is None else accuracy - expected,
             "report": report,
             "preload_stats": self.preload_stats,
         }
