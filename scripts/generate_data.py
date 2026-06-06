@@ -3,8 +3,8 @@
 
 This script contains the cleaned data-generation logic for:
 
-- `data/combined_arggraph_dataset.csv` from the XML files under `data/corpus/`;
-- `data/neu2.csv` neutral pairs from the combined dataset.
+- `data/arggraph_relations.csv` from the XML files under `data/arggraph_xml/`;
+- `data/neutral_pairs.csv` neutral pairs from the combined dataset.
 
 The neutral generation command loads an NLI model and can be slow. The default
 arggraph command only uses the Python standard library.
@@ -245,15 +245,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    arggraph = subparsers.add_parser("arggraph", help="generate data/combined_arggraph_dataset.csv")
-    arggraph.add_argument("--input", type=Path, default=Path("data/corpus"))
-    arggraph.add_argument("--output", type=Path, default=Path("data/combined_arggraph_dataset.csv"))
+    arggraph = subparsers.add_parser("arggraph", help="generate data/arggraph_relations.csv")
+    arggraph.add_argument("--input", type=Path, default=Path("data/arggraph_xml"))
+    arggraph.add_argument("--output", type=Path, default=Path("data/arggraph_relations.csv"))
     arggraph.add_argument("--separate-dir", type=Path, default=None)
     arggraph.set_defaults(func=generate_arggraph_dataset)
 
-    neutral = subparsers.add_parser("neutral", help="generate data/neu2.csv using an NLI model")
-    neutral.add_argument("--input", type=Path, default=Path("data/combined_arggraph_dataset.csv"))
-    neutral.add_argument("--output", type=Path, default=Path("data/neu2.csv"))
+    neutral = subparsers.add_parser("neutral", help="generate data/neutral_pairs.csv using an NLI model")
+    neutral.add_argument("--input", type=Path, default=Path("data/arggraph_relations.csv"))
+    neutral.add_argument("--output", type=Path, default=Path("data/neutral_pairs.csv"))
     neutral.add_argument("--threshold", type=float, default=99.0)
     neutral.add_argument(
         "--model",

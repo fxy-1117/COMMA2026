@@ -39,7 +39,7 @@ def build_evaluation_items(
     seed: int,
     neutral_source: Path,
 ) -> Tuple[List[List[str]], Dict[str, int]]:
-    """Build the evaluation list from one experiment source CSV and neu2.csv."""
+    """Build the evaluation list from one experiment source CSV and neutral pairs."""
     import pandas as pd
 
     source_rows = pd.read_csv(source)[:]

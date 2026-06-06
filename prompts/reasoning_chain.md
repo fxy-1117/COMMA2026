@@ -36,8 +36,8 @@ Claim: {claim}
 Helpful: [insert reasoning chain here]
 ```
 
-The run that produced `exp3.csv` used `num_statements="six"` and then parsed the
-response by reading the line that starts with `Helpful:`.
+The run that produced `data/rte_pairs_exp3.csv` used `num_statements="six"` and
+then parsed the response by reading the line that starts with `Helpful:`.
 
 ## Python Entry Points
 

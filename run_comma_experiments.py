@@ -99,9 +99,9 @@ def resolve_output_dir(output_root: Path, output_dir: Optional[Path], run_id: Op
 
 def run() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--exp12-source", default="data/exp1&exp2.csv")
-    parser.add_argument("--exp3-source", default="data/exp3.csv")
-    parser.add_argument("--neutral-source", default="data/neu2.csv")
+    parser.add_argument("--exp12-source", default="data/rte_pairs_exp12.csv")
+    parser.add_argument("--exp3-source", default="data/rte_pairs_exp3.csv")
+    parser.add_argument("--neutral-source", default="data/neutral_pairs.csv")
     parser.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE_DIR)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--output-dir", type=Path)

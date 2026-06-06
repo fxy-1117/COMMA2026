@@ -15,6 +15,14 @@ from .paper_reference import EXPECTED_ACCURACY, LABELS
 from .runtime_utils import load_pickle_cache, save_pickle_cache, stable_key
 
 
+LOGIC_CACHE_VERSION = "batch-item-v1"
+
+
+def item_logic_key(sentences: List[str]) -> str:
+    """Cache key for item-level AMR logic generated with notebook batching."""
+    return stable_key([LOGIC_CACHE_VERSION, *sentences])
+
+
 class ExperimentRunner:
     """Run settings with the same control flow as the original experiment code.
 
@@ -34,7 +42,6 @@ class ExperimentRunner:
         self.logic_engine = logic_engine
         self.evaluation_items = evaluation_items
         self.cache_dir = cache_dir
-        self.sentence_cache = load_pickle_cache(cache_dir / "sentence_logic_cache.pkl")
         self.item_cache = load_pickle_cache(cache_dir / "logic_cache.pkl")
         self.logic_dirty = False
 
@@ -53,10 +60,14 @@ class ExperimentRunner:
             }
 
     def preload_logic(self) -> Dict[str, int]:
-        """Fill ``logic_engine.LOGIC`` from disk caches using notebook keys."""
+        """Fill ``logic_engine.LOGIC`` from item-level disk caches.
+
+        The original notebook generated all sentences in one example with a
+        single ``generate_logic(i[:-1])`` call. The cache therefore stores the
+        full item result, not independently generated sentence formulas.
+        """
         stats = {
             "items": 0,
-            "from_sentence_cache": 0,
             "from_item_cache": 0,
             "missing": 0,
             "duplicates": 0,
@@ -69,13 +80,10 @@ class ExperimentRunner:
                 stats["duplicates"] += 1
                 continue
             sentences = item[:-1]
-            item_key = stable_key(sentences)
+            item_key = item_logic_key(sentences)
             if item_key in self.item_cache and len(self.item_cache[item_key]) == len(sentences):
                 logic[notebook_key] = self.item_cache[item_key]
                 stats["from_item_cache"] += 1
-            elif all(sentence in self.sentence_cache for sentence in sentences):
-                logic[notebook_key] = [self.sentence_cache[sentence] for sentence in sentences]
-                stats["from_sentence_cache"] += 1
             else:
                 stats["missing"] += 1
         return stats
@@ -83,33 +91,34 @@ class ExperimentRunner:
     def flush_logic_caches(self) -> None:
         if not self.logic_dirty:
             return
-        save_pickle_cache(self.cache_dir / "sentence_logic_cache.pkl", self.sentence_cache)
         save_pickle_cache(self.cache_dir / "logic_cache.pkl", self.item_cache)
         self.logic_dirty = False
 
     def get_logic_forms(self, item: List[str]) -> List[Any]:
         """Get or generate logic forms for one notebook item.
 
-        Missing logic is generated sentence-by-sentence. This preserves the
-        final formulas while avoiding fragile large AMR batches.
+        Missing logic is generated with the same batch call as the notebook:
+        premise, claim, and any implicit-premise steps are parsed together.
         """
         notebook_key = item[0] + item[1]
         logic = self.logic_engine.LOGIC
         if notebook_key not in logic:
             sentences = item[:-1]
-            forms = []
-            for sentence in sentences:
-                if sentence not in self.sentence_cache:
-                    print(f"generating logic for sentence: {sentence[:120]!r}")
-                    formula = self.logic_engine.generate_logic([sentence])[-2][0]
-                    self.sentence_cache[sentence] = self.logic_engine.transform_logic(formula)
-                    self.logic_dirty = True
-                    self.flush_logic_caches()
-                forms.append(self.sentence_cache[sentence])
+            item_key = item_logic_key(sentences)
+            if item_key in self.item_cache and len(self.item_cache[item_key]) == len(sentences):
+                forms = self.item_cache[item_key]
+            else:
+                print(f"generating batch logic for item: {item[0][:80]!r} -> {item[1][:80]!r}")
+                raw_forms = self.logic_engine.generate_logic(sentences)[-2]
+                if len(raw_forms) != len(sentences):
+                    raise ValueError(
+                        f"expected {len(sentences)} logic forms, got {len(raw_forms)}"
+                    )
+                forms = [self.logic_engine.transform_logic(formula) for formula in raw_forms]
+                self.item_cache[item_key] = forms
+                self.logic_dirty = True
+                self.flush_logic_caches()
             logic[notebook_key] = forms
-            self.item_cache[stable_key(sentences)] = forms
-            self.logic_dirty = True
-            self.flush_logic_caches()
         return logic[notebook_key]
 
     @staticmethod

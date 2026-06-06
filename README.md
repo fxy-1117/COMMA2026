@@ -14,7 +14,11 @@ experiments.
 - `comma_core/paper_reference.py`: parameter grids and paper-reported values used for comparison.
 - `comma_core/prompting.py`: prompt templates, DeepSeek wrapper, and output parser.
 - `comma_core/runtime_utils.py`: shared seeding, cache I/O, and local model-loading helpers.
-- `data/`: checked-in CSV files and ArgGraph XML corpus.
+- `data/arggraph_xml/`: original ArgGraph XML files.
+- `data/arggraph_relations.csv`: pairwise relations extracted from ArgGraph XML.
+- `data/rte_pairs_exp12.csv`: Experiment 1 and 2 RTE pairs.
+- `data/rte_pairs_exp3.csv`: Experiment 3 RTE pairs with reasoning chains.
+- `data/neutral_pairs.csv`: neutral RTE pairs appended during evaluation.
 - `prompts/single_implicit_premise.md`: prompt used for the single implicit premise in Experiment 2.
 - `prompts/reasoning_chain.md`: prompt used for the reasoning chain in Experiment 3.
 - `scripts/generate_data.py`: XML-to-CSV and neutral-pair data generation.
@@ -72,8 +76,8 @@ For example, to run only Experiment 3, edit `run_comma_experiments.py` like this
 
 ```python
 RUN_EXPERIMENTS = [
-    # "exp1",
-    # "exp2",
+    "exp1",
+    "exp2",
     "exp3",
 ]
 ```
@@ -116,13 +120,13 @@ API keys are not stored in the repository. The optional DeepSeek helper reads
 ## Data Generation
 
 The checked-in CSV files are already enough to run the experiments. To rebuild
-the ArgGraph-derived CSV from XML files:
+`data/arggraph_relations.csv` from XML files:
 
 ```powershell
 python scripts/generate_data.py arggraph
 ```
 
-To regenerate neutral pairs with the NLI model:
+To regenerate `data/neutral_pairs.csv` with the NLI model:
 
 ```powershell
 python scripts/generate_data.py neutral
