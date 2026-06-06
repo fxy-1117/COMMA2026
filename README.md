@@ -68,6 +68,24 @@ By default `<run_id>` is a timestamp. You can set it explicitly:
 python run_comma_experiments.py --run-id full_run_1129
 ```
 
+## Reproducing the Paper Figures
+
+The checked-in premise-claim CSV files are the canonical experiment data used
+for the paper figures. To reproduce the reported metrics, run:
+
+```powershell
+python run_comma_experiments.py
+```
+
+Then compare the generated `experiment_outputs/<run_id>/experiment_summary.csv`
+with the figure-level reference files:
+
+- `results/exp1_exp2_accuracy.csv`
+- `results/exp3_step_metrics.csv`
+
+With the default seed `1129`, the generated metrics should match these reference
+files up to the displayed precision in the paper figures.
+
 ## Experiment Details
 
 The script intentionally preserves the original behaviours that affect the
@@ -133,8 +151,10 @@ API keys are not stored in the repository. The optional DeepSeek helper reads
 
 ## Data Generation
 
-The checked-in CSV files are already enough to run the experiments. To rebuild
-`data/arggraph_relations.csv` from XML files:
+The checked-in CSV files are already enough to reproduce the experiment
+metrics. The deterministic preprocessing steps can also be rerun.
+
+To rebuild `data/arggraph_relations.csv` from the ArgGraph XML files:
 
 ```powershell
 python scripts/generate_data.py arggraph
@@ -145,3 +165,10 @@ To regenerate `data/neutral_pairs.csv` with the entailment classifier:
 ```powershell
 python scripts/generate_data.py neutral
 ```
+
+The premise-claim labels in `data/premise_claim_relations_exp1_exp2.csv` and
+`data/premise_claim_chains_exp3.csv` are derived from the ArgGraph support,
+example, rebuttal, and undercut relations. Their `Helpful` column contains the
+implicit premises generated with the prompts documented under `prompts/`.
+Because fresh LLM calls may vary, these files are checked in as the canonical
+implicit-premise data for reproducing the paper figures.
