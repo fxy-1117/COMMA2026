@@ -1,24 +1,28 @@
-﻿# COMMA Experiments
+# Implicit Premises for Argument Graph Reconstruction
 
-This repository contains the data and cleaned Python code for the COMMA
-experiments.
+This repository contains the data and cleaned Python implementation for the
+experiments in "Identifying Implicit Premises for Logical Reconstruction of
+Argument Graphs." The pipeline generates implicit premises for premise-claim
+pairs from argument graphs, translates the resulting statements into logical
+formulae, and evaluates whether the reconstructed relation is entailment,
+contradiction, or neutral.
 
 ## Code Layout
 
-- `comma_core/logic_engine.py`: neurosymbolic proof, AMR logic, NLI, and similarity engine.
+- `comma_core/logic_engine.py`: neuro-symbolic proof, AMR logic, entailment classification, and similarity engine.
 - `comma_core/dataset_builder.py`: evaluation-item construction matching the original experiment.
 - `comma_core/experiment_config.py`: experiment labels and parameter grids.
 - `comma_core/experiment_runner.py`: Exp1/Exp2/Exp3 evaluation loop.
-- `comma_core/neural_cache.py`: disk caches for NLI and similarity calls.
+- `comma_core/neural_cache.py`: disk caches for entailment-label and similarity calls.
 - `comma_core/model_runtime.py`: offline/local runtime setup for loading the logic engine.
 - `comma_core/result_writer.py`: JSON/CSV output writing.
 - `comma_core/prompting.py`: prompt templates, DeepSeek wrapper, and output parser.
 - `comma_core/runtime_utils.py`: shared seeding, cache I/O, and local model-loading helpers.
 - `data/arggraph_xml/`: original ArgGraph XML files.
-- `data/arggraph_relations.csv`: pairwise relations extracted from ArgGraph XML.
-- `data/rte_pairs_exp1_exp2.csv`: Experiment 1 and 2 RTE pairs.
-- `data/rte_pairs_exp3.csv`: Experiment 3 RTE pairs with reasoning chains.
-- `data/neutral_pairs.csv`: neutral RTE pairs appended during evaluation.
+- `data/arggraph_relations.csv`: pairwise support, rebuttal, and undercut relations extracted from ArgGraph XML.
+- `data/premise_claim_relations_exp1_exp2.csv`: premise-claim examples for Experiment 1 and Experiment 2.
+- `data/premise_claim_chains_exp3.csv`: premise-claim examples with multi-step implicit-premise chains for Experiment 3.
+- `data/neutral_pairs.csv`: neutral premise-claim examples appended during evaluation.
 - `prompts/single_implicit_premise.md`: prompt used for the single implicit premise in Experiment 2.
 - `prompts/reasoning_chain.md`: prompt used for the reasoning chain in Experiment 3.
 - `results/exp1_exp2_accuracy.csv`: accuracy values shown in the Exp1/Exp2 figure.
@@ -33,8 +37,8 @@ script reads the `RUN_EXPERIMENTS` list near the top of the file; comment or
 uncomment `"exp1"`, `"exp2"`, or `"exp3"` there to choose which experiment
 groups to run.
 
-Run it from the repository root with the same Python environment used for the
-original experiments:
+Run it from the repository root with the Python environment used for the
+neuro-symbolic argument-graph experiments:
 
 ```powershell
 $env:PYTHONHASHSEED='1129'
@@ -81,8 +85,8 @@ RUN_EXPERIMENTS = [
 ]
 ```
 
-Disk caches are stored under `.experiment_cache/` for AMR logic, NLI predictions,
-and sentence-similarity scores. These files are ignored by Git.
+Disk caches are stored under `.experiment_cache/` for AMR logic, entailment-label
+predictions, and sentence-similarity scores. These files are ignored by Git.
 
 ## Reference Results
 
@@ -132,7 +136,7 @@ The checked-in CSV files are already enough to run the experiments. To rebuild
 python scripts/generate_data.py arggraph
 ```
 
-To regenerate `data/neutral_pairs.csv` with the NLI model:
+To regenerate `data/neutral_pairs.csv` with the entailment classifier:
 
 ```powershell
 python scripts/generate_data.py neutral

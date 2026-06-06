@@ -1,1 +1,1 @@
-"""Core modules for running the COMMA neurosymbolic RTE experiments."""
+"""Core modules for neuro-symbolic argument-graph reconstruction experiments."""
