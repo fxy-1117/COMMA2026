@@ -16,7 +16,7 @@ experiments.
 - `comma_core/runtime_utils.py`: shared seeding, cache I/O, and local model-loading helpers.
 - `data/arggraph_xml/`: original ArgGraph XML files.
 - `data/arggraph_relations.csv`: pairwise relations extracted from ArgGraph XML.
-- `data/rte_pairs_exp12.csv`: Experiment 1 and 2 RTE pairs.
+- `data/rte_pairs_exp1_exp2.csv`: Experiment 1 and 2 RTE pairs.
 - `data/rte_pairs_exp3.csv`: Experiment 3 RTE pairs with reasoning chains.
 - `data/neutral_pairs.csv`: neutral RTE pairs appended during evaluation.
 - `prompts/single_implicit_premise.md`: prompt used for the single implicit premise in Experiment 2.
