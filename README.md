@@ -21,8 +21,8 @@ experiments.
 - `data/neutral_pairs.csv`: neutral RTE pairs appended during evaluation.
 - `prompts/single_implicit_premise.md`: prompt used for the single implicit premise in Experiment 2.
 - `prompts/reasoning_chain.md`: prompt used for the reasoning chain in Experiment 3.
-- `results/reference_summary.csv`: verified reference summary from a full run.
-- `results/reference_results.json`: verified full reference results from a full run.
+- `results/exp1_exp2_accuracy.csv`: accuracy values shown in the Exp1/Exp2 figure.
+- `results/exp3_step_metrics.csv`: precision, recall, and accuracy values shown in the Exp3 figure.
 - `scripts/generate_data.py`: XML-to-CSV and neutral-pair data generation.
 - `run_comma_experiments.py`: command-line entry point for experiment runs.
 
@@ -86,10 +86,10 @@ and sentence-similarity scores. These files are ignored by Git.
 
 ## Reference Results
 
-The checked-in files under `results/` are from a full verified run with seed
-`1129`. They are provided as the reference output for reviewers who want to
-compare a fresh run against the reported experiment values. Runtime cache files
-and detailed logs are intentionally not included.
+The checked-in files under `results/` contain only the metrics plotted in the
+paper figures. They are derived from a full verified run with seed `1129`.
+Runtime cache files, detailed logs, per-example outputs, and support counts are
+intentionally not included.
 
 ## Prompt Generation
 
